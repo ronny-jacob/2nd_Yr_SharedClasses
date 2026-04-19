@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shared Elective Class Finder – Trims IV, V & VI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f7f7f5;color:#111;min-height:100vh}
+.wrap{max-width:920px;margin:0 auto;padding:24px 16px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:19px;font-weight:600}
+.sub{font-size:13px;color:#777;margin-top:3px}
+
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:18px}
+.card-title{font-size:13px;font-weight:600;color:#444;margin-bottom:12px}
+
+.search-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+#searchInput{flex:1;min-width:180px;padding:7px 12px;border:0.5px solid #ccc;border-radius:8px;font-size:13px;outline:none}
+#searchInput:focus{border-color:#aaa}
+.ctrl-btn{padding:6px 12px;border-radius:8px;border:0.5px solid #ccc;background:#fff;font-size:12px;cursor:pointer;color:#555;white-space:nowrap}
+.ctrl-btn:hover{background:#f0f0ee}
+
+.student-list{max-height:230px;overflow-y:auto;border:0.5px solid #eee;border-radius:8px;background:#fafafa}
+.s-item{display:flex;align-items:center;gap:10px;padding:7px 12px;cursor:pointer;border-bottom:0.5px solid #f0f0ee;font-size:13px;transition:background 0.1s;user-select:none}
+.s-item:last-child{border-bottom:none}
+.s-item:hover{background:#f0f0ee}
+.s-check{width:16px;height:16px;border-radius:4px;border:1.5px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:#fff;transition:all 0.1s}
+.s-item.selected .s-check{color:#fff}
+.s-name{flex:1}
+.no-results{padding:16px;text-align:center;color:#aaa;font-size:13px}
+
+.sel-bar{display:flex;align-items:flex-start;gap:8px;margin-top:12px;min-height:28px;flex-wrap:wrap}
+.sel-label{font-size:12px;color:#888;white-space:nowrap;padding-top:4px;flex-shrink:0}
+.sel-badges{display:flex;flex-wrap:wrap;gap:5px;flex:1}
+.sel-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px 3px 10px;border-radius:20px;font-size:12px;cursor:default;font-weight:500}
+.sel-badge .rm{cursor:pointer;font-size:15px;line-height:1;opacity:0.55;margin-left:1px}
+.sel-badge .rm:hover{opacity:1}
+.clear-all{font-size:12px;color:#aaa;cursor:pointer;padding:3px 6px;border-radius:6px;white-space:nowrap;margin-top:2px}
+.clear-all:hover{color:#555;background:#f0f0ee}
+
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:8px;border:0.5px solid #ccc;font-size:13px;cursor:pointer;background:#fff;color:#555}
+.tab.active{background:#111;color:#fff;border-color:#111}
+.panel{display:none}.panel.active{display:block}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:#f5f5f3;padding:8px 10px;text-align:left;font-weight:500;font-size:12px;color:#666;border-bottom:0.5px solid #e0e0e0}
+td{padding:9px 10px;border-bottom:0.5px solid #eee;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.cls-name{font-weight:500;font-size:13px;color:#111}
+.faculty{font-size:11px;color:#bbb;margin-top:2px}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:500;margin:2px 3px 2px 0;white-space:nowrap}
+.count-pill{display:inline-block;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:600;white-space:nowrap;background:#f0f0ee;color:#555;border:0.5px solid #ddd}
+.empty{text-align:center;padding:36px;color:#ccc;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Shared Elective Class Finder</h1>
+    <p class="sub">146 students · Trimesters IV, V & VI · Select any students to see which classes they share.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Search & select students</div>
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="Type a name to search…" oninput="filterList()">
+      <button class="ctrl-btn" onclick="selectVisible()">Select visible</button>
+      <button class="ctrl-btn" onclick="clearAll()">Clear all</button>
+    </div>
+    <div class="student-list" id="studentList"></div>
+    <div class="sel-bar">
+      <span class="sel-label" id="selLabel">0 selected</span>
+      <div class="sel-badges" id="selBadges"></div>
+      <span class="clear-all" onclick="clearAll()" id="clearAllBtn" style="display:none">Clear all</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('iv',this)">Trimester IV</button>
+      <button class="tab" onclick="showTab('v',this)">Trimester V</button>
+      <button class="tab" onclick="showTab('vi',this)">Trimester VI</button>
+    </div>
+    <div id="panel-iv" class="panel active"></div>
+    <div id="panel-v"  class="panel"></div>
+    <div id="panel-vi" class="panel"></div>
+  </div>
+</div>
+
+<script>
+const STUDENTS = ["Aastha Saini", "Abhijatya Negi", "Abhishek Kumar", "Aby K Mathai", "Aditya Chaubey", "Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshara T Santhosh", "Akshita Chopde", "Aman Shahin", "Amir Rahman", "Anannya Gupta", "Aniket Patwari", "Ankit Ghoradkar", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Anusha Heliwal", "Arjya Bose", "Arsh Vardhan Sinha", "Aryaman Gupta", "Aryan Agnihotri", "Ashish Gupta", "Astha Kejriwal", "Avantika Sain", "Ayush Dutta", "Ayush Kayande", "Bharvi Girkar", "Chandrakant Narwani", "Chirag Tandon", "Deepti Yendluri", "Devanshi Kyal", "Dhairya Mehta", "Dibyendu Das", "Dristi Mittal", "Gaurang Maheshwari", "Gaurav Agarwal", "Gaurav Wadhwa", "Girish Kabra", "Hanima Ahuja", "Harmit Singh", "Harshita Pradhan", "Heeral Tandon", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Insha Ali", "Isha Jain", "Ishan Sanghavi", "Ishita Sinha", "Jahnvi Sahay", "Jash Vaja", "Jay Dave", "Jeel Shah", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Kishore P", "Koustav Jana", "Krish Siddharth Negi", "Kritik Pillai", "Kshitiz Gupta", "Kurian George", "Lakshmi S", "Mahi Kinariwala", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Medha Jha", "Monish Das", "Mridul Arora", "Mudit Mittal", "Nachiketh N", "Naman Jain", "Nidhi Shaw", "Nihal Bibikar", "Nikhar Talreja", "Niladri Kundu", "Ojaswinee Biswal", "Paridhi Rungta", "Pilla Venkata Sai Tharun", "Pragya Rastogi", "Prakhar", "Pramiti Gupta", "Prateek Gaur", "Pratham Bagri", "Pratham Goel", "Pratham Kamath", "Preetkanwal Singh", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rituparna Sharma", "Riya Malik", "Rohit Ramakant Patil", "Rohit Ranjan", "Ronny Jacob", "Ruttva Virendrasinh Raj", "S K Harrish", "Saksham Gupta", "Samhita Banerjee", "Sanidhya Mishra", "Sanskar Mahalka", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shreya Shivangi", "Shrishti Mittal", "Shubh Gupta", "Shwetha R", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Sujith Reddy Yedulla", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanisha Singh", "Tanishq Dahiya", "Tejaswita", "Tharani S S", "Tina Kewlani", "Tumuluri Vaashista Vivek", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vedant Swarnkar", "Vidhu P", "Vishnu P S", "Vishnu Vyas", "Yashashree Jitendra Kothawade"];
+const CLASSES  = {"iv": [{"cls": "Advanced Financial Statement Analysis ( Dr Narender Vunyale)", "students": ["Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Anannya Gupta", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Anusha Heliwal", "Aryan Agnihotri", "Astha Kejriwal", "Ayush Dutta", "Ayush Kayande", "Chandrakant Narwani", "Deepti Yendluri", "Dhairya Mehta", "Dibyendu Das", "Gaurang Maheshwari", "Girish Kabra", "Harmit Singh", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Ishan Sanghavi", "Ishita Sinha", "Jahnvi Sahay", "Jeel Shah", "Kishore P", "Kritik Pillai", "Kshitiz Gupta", "Mahi Kinariwala", "Medha Jha", "Mudit Mittal", "Naman Jain", "Niladri Kundu", "Pragya Rastogi", "Prakhar", "Prateek Gaur", "Pratham Goel", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "Saksham Gupta", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanisha Singh", "Tejaswita", "Tharani S S", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vishnu Vyas"]}, {"cls": "Artificial Intelligence for Managers (New/Visiting Faculty)", "students": ["Aastha Saini", "Aby K Mathai", "Aman Shahin", "Arsh Vardhan Sinha", "Girish Kabra", "Insha Ali", "Kishore P", "Kurian George", "Lakshmi S", "Nachiketh N", "Nidhi Shaw", "Pilla Venkata Sai Tharun", "Preetkanwal Singh", "Rituparna Sharma", "Sanidhya Mishra", "Shwetha R", "Simran Kumari", "Sujith Reddy Yedulla", "Tumuluri Vaashista Vivek", "Vaishnavi Dudem", "Vidhu P"]}, {"cls": "Business Valuation ( Prof Vittal SPR- Tentative)", "students": ["Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Anannya Gupta", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Anusha Heliwal", "Aryan Agnihotri", "Astha Kejriwal", "Ayush Dutta", "Ayush Kayande", "Chandrakant Narwani", "Deepti Yendluri", "Dhairya Mehta", "Dibyendu Das", "Gaurang Maheshwari", "Girish Kabra", "Harmit Singh", "Harshita Pradhan", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Ishan Sanghavi", "Ishita Sinha", "Jahnvi Sahay", "Jeel Shah", "Kishore P", "Kritik Pillai", "Kshitiz Gupta", "Mahi Kinariwala", "Medha Jha", "Mudit Mittal", "Naman Jain", "Niladri Kundu", "Pragya Rastogi", "Prakhar", "Prateek Gaur", "Pratham Goel", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "Saksham Gupta", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanisha Singh", "Tejaswita", "Tharani S S", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vishnu P S", "Vishnu Vyas"]}, {"cls": "Commercial Bank Management- Dr Narender Vunyale", "students": ["Akella Venkata Karthik", "Deepti Yendluri", "Gaurang Maheshwari", "Harshita Pradhan", "Himanshi Tanwar", "Hritik Kumar", "Jahnvi Sahay", "Kritik Pillai", "Medha Jha", "Mudit Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Ruttva Virendrasinh Raj", "Saksham Gupta", "Sanskar Tulsian", "Srishti Shinde", "Subhashribad Lenka", "Umang Gupta", "Varun Patwary", "Vasu Jain", "Vishnu P S", "Vishnu Vyas"]}, {"cls": "Consumer Behaviour ( New Facaulty)", "students": ["Aastha Saini", "Abhijatya Negi", "Abhishek Kumar", "Aditya Chaubey", "Aman Shahin", "Amir Rahman", "Aniket Patwari", "Ankit Ghoradkar", "Arjya Bose", "Arsh Vardhan Sinha", "Aryaman Gupta", "Ashish Gupta", "Avantika Sain", "Bharvi Girkar", "Chirag Tandon", "Devanshi Kyal", "Dristi Mittal", "Gaurav Agarwal", "Gaurav Wadhwa", "Hanima Ahuja", "Heeral Tandon", "Insha Ali", "Isha Jain", "Ishita Sinha", "Jash Vaja", "Jay Dave", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Lakshmi S", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Monish Das", "Mridul Arora", "Nachiketh N", "Nihal Bibikar", "Nikhar Talreja", "Ojaswinee Biswal", "Paridhi Rungta", "Pilla Venkata Sai Tharun", "Pramiti Gupta", "Pratham Bagri", "Pratham Kamath", "Preetkanwal Singh", "Rituparna Sharma", "Riya Malik", "Rohit Ramakant Patil", "Ronny Jacob", "S K Harrish", "Samhita Banerjee", "Sanidhya Mishra", "Sanskar Mahalka", "Shreya Shivangi", "Shrishti Mittal", "Shwetha R", "Sujith Reddy Yedulla", "Tanishq Dahiya", "Tina Kewlani", "Tumuluri Vaashista Vivek", "Vedant Swarnkar", "Yashashree Jitendra Kothawade"]}, {"cls": "Data Analytics for Business (New/Visiting Faculty)", "students": ["Aby K Mathai", "Akshara T Santhosh", "Anannya Gupta", "Anna Ria", "Anusha Heliwal", "Astha Kejriwal", "Chandrakant Narwani", "Harshita Pradhan", "I Dharshana", "Mahi Kinariwala", "Marie Aparajith Rajashankar", "Nachiketh N", "Naman Jain", "Pratham Goel", "Prerna Tekade", "Rohit Ranjan", "S K Harrish", "Sujith Reddy Yedulla", "Swechha Jaiswal", "Tejaswita", "Tumuluri Vaashista Vivek", "Uzma Khan", "Vaishnavi Dudem", "Vidhu P"]}, {"cls": "Entrepreneurship ( Dr Srividya Raghavan)", "students": ["Abhijatya Negi", "Aditya Chaubey", "Ajay Vigneshwar A", "Aniket Patwari", "Antara Gupta", "Chirag Tandon", "Ishan Sanghavi", "Kishore P", "Koustav Jana", "Krish Siddharth Negi", "Kshitiz Gupta", "Mridul Arora", "Prakhar", "Pramiti Gupta", "Pratham Bagri", "Rishabh Tulsian", "Rishita Ramdeo", "Ronny Jacob", "Samhita Banerjee", "Saurabh Pathak", "Savitha Sri S", "Shreya Gupta", "Shrishti Mittal", "Sraeya Balakrishnan", "Sudhanshu Chauhan", "Suraj Satpute", "Tanisha Singh", "Tanishq Dahiya", "Tharani S S", "Tina Kewlani", "Umang Agarwal"]}, {"cls": "Financial Derivatives ( Prof Narsimhulu- Tentative)", "students": ["Anna Ria", "Dhairya Mehta", "Dibyendu Das", "Harmit Singh", "Ishan Sanghavi", "Ishita Sinha", "Jeel Shah", "Niladri Kundu", "Prateek Gaur", "Priyanshu Mittal", "Savitha Sri S", "Shraddha Randive", "Shubh Gupta", "Swapnil Tiwari", "Tharani S S", "Uzma Khan", "Vasu Jain"]}, {"cls": "Integrated marketing Communication ( New faculty/ Dr Anup)", "students": ["Abhijatya Negi", "Abhishek Kumar", "Aditya Chaubey", "Amir Rahman", "Aniket Patwari", "Ankit Ghoradkar", "Arsh Vardhan Sinha", "Aryaman Gupta", "Ashish Gupta", "Avantika Sain", "Bharvi Girkar", "Chirag Tandon", "Devanshi Kyal", "Dristi Mittal", "Gaurav Agarwal", "Gaurav Wadhwa", "Hanima Ahuja", "Heeral Tandon", "Isha Jain", "Jay Dave", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Mahika Vasandani", "Masoom Singh", "Monish Das", "Mridul Arora", "Nihal Bibikar", "Nikhar Talreja", "Pilla Venkata Sai Tharun", "Pratham Bagri", "Pratham Kamath", "Preetkanwal Singh", "Rituparna Sharma", "Riya Malik", "Samhita Banerjee", "Sanskar Mahalka", "Shrishti Mittal", "Shwetha R", "Tanishq Dahiya", "Tina Kewlani"]}, {"cls": "Investment Analysis and Portfolio Management( Dr Showkat Ahmad)", "students": ["Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Anannya Gupta", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Anusha Heliwal", "Aryan Agnihotri", "Astha Kejriwal", "Ayush Dutta", "Ayush Kayande", "Chandrakant Narwani", "Deepti Yendluri", "Dhairya Mehta", "Dibyendu Das", "Gaurang Maheshwari", "Girish Kabra", "Harmit Singh", "Harshita Pradhan", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Ishita Sinha", "Jahnvi Sahay", "Jeel Shah", "Kishore P", "Kritik Pillai", "Kshitiz Gupta", "Mahi Kinariwala", "Medha Jha", "Mudit Mittal", "Naman Jain", "Niladri Kundu", "Pragya Rastogi", "Prakhar", "Prateek Gaur", "Pratham Goel", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "Saksham Gupta", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanisha Singh", "Tejaswita", "Tharani S S", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vishnu P S", "Vishnu Vyas"]}, {"cls": "Learning & Development ( Dr Umakanta Nayak)", "students": ["Akshara T Santhosh", "Aryan Agnihotri", "Kanishk Mehta", "Nidhi Shaw", "Riya Malik", "Vedant Swarnkar", "Vishnu P S"]}, {"cls": "Management Consulting ( Dr Dileep Kumar)", "students": ["Aastha Saini", "Abhijatya Negi", "Abhishek Kumar", "Aby K Mathai", "Aditya Chaubey", "Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshara T Santhosh", "Akshita Chopde", "Aman Shahin", "Amir Rahman", "Anannya Gupta", "Aniket Patwari", "Ankit Ghoradkar", "Ankita Patwardhan", "Ankush P. Karwa", "Antara Gupta", "Anusha Heliwal", "Arjya Bose", "Arsh Vardhan Sinha", "Aryaman Gupta", "Ashish Gupta", "Astha Kejriwal", "Avantika Sain", "Ayush Dutta", "Ayush Kayande", "Bharvi Girkar", "Chandrakant Narwani", "Chirag Tandon", "Deepti Yendluri", "Devanshi Kyal", "Dhairya Mehta", "Dibyendu Das", "Dristi Mittal", "Gaurang Maheshwari", "Gaurav Agarwal", "Gaurav Wadhwa", "Girish Kabra", "Hanima Ahuja", "Harmit Singh", "Harshita Pradhan", "Heeral Tandon", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Insha Ali", "Isha Jain", "Ishan Sanghavi", "Jahnvi Sahay", "Jash Vaja", "Jay Dave", "Jeel Shah", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Kritik Pillai", "Kshitiz Gupta", "Kurian George", "Lakshmi S", "Mahi Kinariwala", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Medha Jha", "Monish Das", "Mridul Arora", "Mudit Mittal", "Naman Jain", "Nihal Bibikar", "Nikhar Talreja", "Niladri Kundu", "Ojaswinee Biswal", "Paridhi Rungta", "Pilla Venkata Sai Tharun", "Pragya Rastogi", "Prakhar", "Pramiti Gupta", "Prateek Gaur", "Pratham Bagri", "Pratham Goel", "Pratham Kamath", "Preetkanwal Singh", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rituparna Sharma", "Riya Malik", "Rohit Ramakant Patil", "Rohit Ranjan", "Ronny Jacob", "Ruttva Virendrasinh Raj", "S K Harrish", "Saksham Gupta", "Samhita Banerjee", "Sanidhya Mishra", "Sanskar Mahalka", "Sanskar Tulsian", "Saurabh Pathak", "Shraddha Randive", "Shreya Gupta", "Shreya Shivangi", "Shrishti Mittal", "Shubh Gupta", "Shwetha R", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanisha Singh", "Tanishq Dahiya", "Tejaswita", "Tina Kewlani", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Varun Patwary", "Vasu Jain", "Vedant Swarnkar", "Vidhu P", "Vishnu P S", "Vishnu Vyas", "Yashashree Jitendra Kothawade"]}, {"cls": "Marketing Analytics (New Faculty)", "students": ["Aastha Saini", "Abhishek Kumar", "Aby K Mathai", "Aman Shahin", "Ankit Ghoradkar", "Aryaman Gupta", "Avantika Sain", "Ayush Dutta", "Bharvi Girkar", "Gaurav Agarwal", "Gaurav Wadhwa", "Hanima Ahuja", "Insha Ali", "Isha Jain", "Jash Vaja", "Kanishka Gupta", "Kurian George", "Lakshmi S", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Monish Das", "Nachiketh N", "Nihal Bibikar", "Nikhar Talreja", "Ojaswinee Biswal", "Pilla Venkata Sai Tharun", "Pramiti Gupta", "Rohit Ramakant Patil", "S K Harrish", "Sujith Reddy Yedulla", "Tumuluri Vaashista Vivek", "Tushar Soni", "Vidhu P", "Yashashree Jitendra Kothawade"]}, {"cls": "Marketing Analytics (New/ Visiting Faculty)", "students": ["Akshita Chopde", "Amir Rahman", "Ankita Patwardhan", "Ankush P. Karwa", "Arjya Bose", "Ashish Gupta", "Ayush Kayande", "Devanshi Kyal", "Dristi Mittal", "Jay Dave", "Jyoti Bikas Das", "Nidhi Shaw", "Paridhi Rungta", "Pragya Rastogi", "Ronny Jacob", "Sanskar Mahalka", "Shreya Shivangi", "Tushita Mishra"]}, {"cls": "Pricing Strategies ( Dr Srividya Raghavan)", "students": ["Aby K Mathai", "Arjya Bose", "Avantika Sain", "Gaurav Agarwal", "Heeral Tandon", "Jash Vaja", "Jyoti Bikas Das", "Kurian George", "Manav Malhotra", "Ojaswinee Biswal", "Paridhi Rungta", "Pratham Kamath", "Preetkanwal Singh", "Rohit Ramakant Patil", "Sanidhya Mishra", "Shreya Shivangi", "Sujith Reddy Yedulla", "Tumuluri Vaashista Vivek", "Vidhu P", "Yashashree Jitendra Kothawade"]}, {"cls": "Product Strategy (New faculty)", "students": ["Aastha Saini", "Abhijatya Negi", "Abhishek Kumar", "Aditya Chaubey", "Aman Shahin", "Amir Rahman", "Aniket Patwari", "Ankit Ghoradkar", "Arjya Bose", "Arsh Vardhan Sinha", "Aryaman Gupta", "Ashish Gupta", "Bharvi Girkar", "Chirag Tandon", "Devanshi Kyal", "Dristi Mittal", "Gaurav Wadhwa", "Hanima Ahuja", "Heeral Tandon", "Insha Ali", "Isha Jain", "Jash Vaja", "Jay Dave", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Kurian George", "Lakshmi S", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Monish Das", "Mridul Arora", "Nachiketh N", "Nihal Bibikar", "Nikhar Talreja", "Ojaswinee Biswal", "Paridhi Rungta", "Pramiti Gupta", "Pratham Bagri", "Pratham Kamath", "Preetkanwal Singh", "Rituparna Sharma", "Riya Malik", "Rohit Ramakant Patil", "Ronny Jacob", "S K Harrish", "Samhita Banerjee", "Sanidhya Mishra", "Sanskar Mahalka", "Shreya Shivangi", "Shrishti Mittal", "Shwetha R", "Tanishq Dahiya", "Tina Kewlani", "Yashashree Jitendra Kothawade"]}, {"cls": "Recruitment and Selection ( Dr Sasmita Misra)", "students": ["Akshara T Santhosh", "Aryan Agnihotri", "Nidhi Shaw", "Vedant Swarnkar"]}, {"cls": "Total Rewards (\u00a0 Dr Umakanta Nayak)", "students": ["Akshara T Santhosh", "Nidhi Shaw", "Vedant Swarnkar"]}], "v": [{"cls": "Corporate Turnaround- Dr Dileep Kumar", "students": ["Abhijatya Negi", "Abhishek Kumar", "Aditya Chaubey", "Ajay Vigneshwar A", "Akella Venkata Karthik", "Aman Shahin", "Amir Rahman", "Anannya Gupta", "Aniket Patwari", "Ankit Ghoradkar", "Ankush P. Karwa", "Antara Gupta", "Anusha Heliwal", "Arjya Bose", "Arsh Vardhan Sinha", "Aryan Agnihotri", "Astha Kejriwal", "Avantika Sain", "Ayush Dutta", "Ayush Kayande", "Bharvi Girkar", "Chandrakant Narwani", "Chirag Tandon", "Deepti Yendluri", "Devanshi Kyal", "Dibyendu Das", "Dristi Mittal", "Gaurang Maheshwari", "Gaurav Agarwal", "Gaurav Wadhwa", "Girish Kabra", "Hanima Ahuja", "Harshita Pradhan", "Heeral Tandon", "Himanshi Tanwar", "Hritik Kumar", "Insha Ali", "Isha Jain", "Jahnvi Sahay", "Jash Vaja", "Jay Dave", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Kritik Pillai", "Kshitiz Gupta", "Kurian George", "Lakshmi S", "Mahi Kinariwala", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Medha Jha", "Monish Das", "Mridul Arora", "Mudit Mittal", "Naman Jain", "Nidhi Shaw", "Nihal Bibikar", "Nikhar Talreja", "Niladri Kundu", "Ojaswinee Biswal", "Paridhi Rungta", "Pragya Rastogi", "Prakhar", "Pramiti Gupta", "Pratham Bagri", "Pratham Goel", "Pratham Kamath", "Preetkanwal Singh", "Prerna Tekade", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rituparna Sharma", "Rohit Ramakant Patil", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "S K Harrish", "Saksham Gupta", "Sanidhya Mishra", "Sanskar Mahalka", "Sanskar Tulsian", "Saurabh Pathak", "Shraddha Randive", "Shreya Gupta", "Shreya Shivangi", "Shrishti Mittal", "Shubh Gupta", "Shwetha R", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Swapnil Tiwari", "Tanisha Singh", "Tanishq Dahiya", "Tejaswita", "Tina Kewlani", "Tumuluri Vaashista Vivek", "Tushar Soni", "Umang Agarwal", "Umang Gupta", "Varun Patwary", "Vasu Jain", "Vishnu P S", "Yashashree Jitendra Kothawade"]}, {"cls": "Digital Marketing- New/ Visiting Faculty", "students": ["Aastha Saini", "Abhijatya Negi", "Abhishek Kumar", "Aby K Mathai", "Aditya Chaubey", "Akshara T Santhosh", "Aman Shahin", "Amir Rahman", "Aniket Patwari", "Ankit Ghoradkar", "Arjya Bose", "Arsh Vardhan Sinha", "Aryaman Gupta", "Ashish Gupta", "Avantika Sain", "Bharvi Girkar", "Chirag Tandon", "Devanshi Kyal", "Dristi Mittal", "Gaurav Agarwal", "Gaurav Wadhwa", "Hanima Ahuja", "Insha Ali", "Isha Jain", "Jash Vaja", "Jay Dave", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Krish Siddharth Negi", "Kurian George", "Lakshmi S", "Mahika Vasandani", "Manav Malhotra", "Masoom Singh", "Monish Das", "Mridul Arora", "Nachiketh N", "Nihal Bibikar", "Nikhar Talreja", "Ojaswinee Biswal", "Paridhi Rungta", "Pilla Venkata Sai Tharun", "Pramiti Gupta", "Pratham Bagri", "Pratham Kamath", "Preetkanwal Singh", "Rituparna Sharma", "Riya Malik", "Rohit Ramakant Patil", "Ronny Jacob", "Samhita Banerjee", "Sanskar Mahalka", "Shreya Shivangi", "Shrishti Mittal", "Shwetha R", "Sujith Reddy Yedulla", "Tanishq Dahiya", "Tina Kewlani", "Tumuluri Vaashista Vivek", "Vidhu P", "Yashashree Jitendra Kothawade"]}, {"cls": "Games of Strategy- Dr Srividya Raghavan", "students": ["Aastha Saini", "Abhijatya Negi", "Aditya Chaubey", "Aniket Patwari", "Ashish Gupta", "Avantika Sain", "Ayush Dutta", "Dibyendu Das", "Gaurav Agarwal", "Harmit Singh", "Heeral Tandon", "Ishan Sanghavi", "Ishita Sinha", "Jay Dave", "Koustav Jana", "Krish Siddharth Negi", "Kshitiz Gupta", "Marie Aparajith Rajashankar", "Nachiketh N", "Niladri Kundu", "Pilla Venkata Sai Tharun", "Prateek Gaur", "Pratham Bagri", "Priyanshu Mittal", "Sanidhya Mishra", "Sujith Reddy Yedulla", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Yashashree Jitendra Kothawade"]}, {"cls": "International Finance -Visiting Fcaulty", "students": ["Anannya Gupta", "Anusha Heliwal", "Astha Kejriwal", "Gaurang Maheshwari", "Harmit Singh", "Harshita Pradhan", "Ishan Sanghavi", "Ishita Sinha", "Jeel Shah", "Mahi Kinariwala", "Mudit Mittal", "Naman Jain", "Prakhar", "Prateek Gaur", "Pratham Goel", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Saksham Gupta", "Saurabh Pathak", "Shraddha Randive", "Srishti Shinde", "Subhashribad Lenka", "Suraj Satpute", "Swechha Jaiswal", "Tanisha Singh", "Tejaswita", "Vishnu P S"]}, {"cls": "Investment Banking - Dr Narender Vunyale", "students": ["Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Anannya Gupta", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Anusha Heliwal", "Aryan Agnihotri", "Astha Kejriwal", "Ayush Dutta", "Ayush Kayande", "Chandrakant Narwani", "Deepti Yendluri", "Dhairya Mehta", "Dibyendu Das", "Gaurang Maheshwari", "Girish Kabra", "Harmit Singh", "Harshita Pradhan", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Ishan Sanghavi", "Ishita Sinha", "Jahnvi Sahay", "Jeel Shah", "Kishore P", "Kritik Pillai", "Kshitiz Gupta", "Mahi Kinariwala", "Medha Jha", "Mudit Mittal", "Naman Jain", "Niladri Kundu", "Pragya Rastogi", "Prakhar", "Prateek Gaur", "Pratham Goel", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "Saksham Gupta", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanisha Singh", "Tejaswita", "Tharani S S", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vishnu P S", "Vishnu Vyas"]}, {"cls": "Mergers, Aquisitions and Corporate Restructuring- Dr Narender Vunyale", "students": ["Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Anannya Gupta", "Ankita Patwardhan", "Anna Ria", "Antara Gupta", "Anusha Heliwal", "Aryaman Gupta", "Astha Kejriwal", "Ayush Kayande", "Chandrakant Narwani", "Deepti Yendluri", "Dhairya Mehta", "Gaurang Maheshwari", "Girish Kabra", "Harmit Singh", "Harshita Pradhan", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Ishan Sanghavi", "Jahnvi Sahay", "Jeel Shah", "Kishore P", "Kritik Pillai", "Mahi Kinariwala", "Medha Jha", "Mudit Mittal", "Naman Jain", "Prakhar", "Prateek Gaur", "Pratham Goel", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "Saksham Gupta", "Sanskar Tulsian", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanishq Dahiya", "Tejaswita", "Tharani S S", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vedant Swarnkar", "Vishnu P S", "Vishnu Vyas"]}, {"cls": "Performance Management at Work- Dr Sasmita Misra", "students": ["Akshara T Santhosh", "Aryan Agnihotri", "Nidhi Shaw", "Riya Malik", "Samhita Banerjee", "Vedant Swarnkar"]}, {"cls": "Services Marketing -Dr Anup Raj", "students": ["Abhishek Kumar", "Aby K Mathai", "Aman Shahin", "Amir Rahman", "Ankit Ghoradkar", "Arjya Bose", "Arsh Vardhan Sinha", "Aryaman Gupta", "Bharvi Girkar", "Devanshi Kyal", "Dristi Mittal", "Gaurav Wadhwa", "Hanima Ahuja", "Heeral Tandon", "Insha Ali", "Isha Jain", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Kurian George", "Lakshmi S", "Mahika Vasandani", "Marie Aparajith Rajashankar", "Masoom Singh", "Monish Das", "Mridul Arora", "Nachiketh N", "Nihal Bibikar", "Nikhar Talreja", "Ojaswinee Biswal", "Paridhi Rungta", "Pramiti Gupta", "Pratham Kamath", "Riya Malik", "Rohit Ramakant Patil", "S K Harrish", "Samhita Banerjee", "Sanidhya Mishra", "Sanskar Mahalka", "Shrishti Mittal", "Shwetha R", "Tina Kewlani", "Vidhu P"]}, {"cls": "Strategic Brand Management- Dr Murtuza Soofi( Tentative)", "students": ["Aastha Saini", "Abhijatya Negi", "Abhishek Kumar", "Aby K Mathai", "Aditya Chaubey", "Akshara T Santhosh", "Aman Shahin", "Amir Rahman", "Aniket Patwari", "Ankit Ghoradkar", "Arjya Bose", "Arsh Vardhan Sinha", "Aryaman Gupta", "Ashish Gupta", "Avantika Sain", "Bharvi Girkar", "Chirag Tandon", "Devanshi Kyal", "Dristi Mittal", "Gaurav Agarwal", "Gaurav Wadhwa", "Hanima Ahuja", "Heeral Tandon", "Insha Ali", "Isha Jain", "Ishita Sinha", "Jash Vaja", "Jay Dave", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Kurian George", "Lakshmi S", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Monish Das", "Mridul Arora", "Nidhi Shaw", "Nihal Bibikar", "Nikhar Talreja", "Ojaswinee Biswal", "Paridhi Rungta", "Pilla Venkata Sai Tharun", "Pramiti Gupta", "Pratham Bagri", "Pratham Kamath", "Preetkanwal Singh", "Rituparna Sharma", "Riya Malik", "Rohit Ramakant Patil", "Ronny Jacob", "S K Harrish", "Samhita Banerjee", "Sanidhya Mishra", "Sanskar Mahalka", "Shreya Shivangi", "Shrishti Mittal", "Shwetha R", "Sujith Reddy Yedulla", "Tanishq Dahiya", "Tina Kewlani", "Tumuluri Vaashista Vivek", "Vedant Swarnkar", "Vidhu P", "Vishnu Vyas", "Yashashree Jitendra Kothawade"]}, {"cls": "Visual Analytics- Prof Pradeep ( Tentative)", "students": ["Aastha Saini", "Aby K Mathai", "Akshara T Santhosh", "Akshita Chopde", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Ashish Gupta", "Chirag Tandon", "Deepti Yendluri", "Dhairya Mehta", "I Dharshana", "Jash Vaja", "Jeel Shah", "Kishore P", "Manav Malhotra", "Nachiketh N", "Nidhi Shaw", "Pilla Venkata Sai Tharun", "Pragya Rastogi", "Preetkanwal Singh", "Rituparna Sharma", "Ronny Jacob", "S K Harrish", "Savitha Sri S", "Shreya Shivangi", "Sujith Reddy Yedulla", "Tharani S S", "Tumuluri Vaashista Vivek", "Tushita Mishra", "Uzma Khan", "Vaishnavi Dudem", "Vedant Swarnkar", "Vidhu P"]}, {"cls": "Wealth Management- Dr Showkat Ahmad", "students": ["Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Aryan Agnihotri", "Ayush Dutta", "Ayush Kayande", "Chandrakant Narwani", "Dhairya Mehta", "Dibyendu Das", "Girish Kabra", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Jahnvi Sahay", "Kishore P", "Kritik Pillai", "Kshitiz Gupta", "Medha Jha", "Niladri Kundu", "Pragya Rastogi", "Prerna Tekade", "Rishabh Tulsian", "Rishita Ramdeo", "Rohit Ranjan", "Ronny Jacob", "Ruttva Virendrasinh Raj", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sraeya Balakrishnan", "Sudhanshu Chauhan", "Tanisha Singh", "Tharani S S", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vishnu Vyas"]}], "vi": [{"cls": "Alternative Investment Markets- Dr Narender Vunyale", "students": ["Akella Venkata Karthik", "Akshita Chopde", "Anannya Gupta", "Ankita Patwardhan", "Ankush P. Karwa", "Antara Gupta", "Anusha Heliwal", "Aryan Agnihotri", "Astha Kejriwal", "Ayush Dutta", "Ayush Kayande", "Deepti Yendluri", "Dibyendu Das", "Girish Kabra", "Harmit Singh", "Harshita Pradhan", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Ishan Sanghavi", "Ishita Sinha", "Jahnvi Sahay", "Jeel Shah", "Kritik Pillai", "Kshitiz Gupta", "Mahi Kinariwala", "Naman Jain", "Niladri Kundu", "Pragya Rastogi", "Prakhar", "Prateek Gaur", "Pratham Goel", "Prerna Tekade", "Priyanshu Mittal", "Rishabh Tulsian", "Rishita Ramdeo", "Rohit Ranjan", "Saksham Gupta", "Saurabh Pathak", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tanisha Singh", "Tejaswita", "Tharani S S", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vishnu Vyas"]}, {"cls": "Business Marketing- Dr Anup Raj", "students": ["Abhijatya Negi", "Abhishek Kumar", "Aditya Chaubey", "Aman Shahin", "Amir Rahman", "Aniket Patwari", "Arsh Vardhan Sinha", "Aryaman Gupta", "Chirag Tandon", "Devanshi Kyal", "Dristi Mittal", "Hanima Ahuja", "Heeral Tandon", "Insha Ali", "Isha Jain", "Jash Vaja", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Lakshmi S", "Marie Aparajith Rajashankar", "Masoom Singh", "Monish Das", "Nikhar Talreja", "Paridhi Rungta", "Pilla Venkata Sai Tharun", "Pramiti Gupta", "Rituparna Sharma", "Riya Malik", "Rohit Ramakant Patil", "S K Harrish", "Sanidhya Mishra", "Shwetha R", "Sujith Reddy Yedulla", "Tanishq Dahiya", "Tina Kewlani", "Tumuluri Vaashista Vivek"]}, {"cls": "Consumer Data Analytics New/VF/ Dr Anup", "students": ["Aastha Saini", "Abhishek Kumar", "Aby K Mathai", "Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshara T Santhosh", "Akshita Chopde", "Amir Rahman", "Anannya Gupta", "Ankit Ghoradkar", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Arjya Bose", "Arsh Vardhan Sinha", "Ashish Gupta", "Astha Kejriwal", "Avantika Sain", "Ayush Dutta", "Ayush Kayande", "Bharvi Girkar", "Chandrakant Narwani", "Chirag Tandon", "Deepti Yendluri", "Devanshi Kyal", "Dhairya Mehta", "Dibyendu Das", "Dristi Mittal", "Gaurang Maheshwari", "Gaurav Agarwal", "Gaurav Wadhwa", "Girish Kabra", "Hanima Ahuja", "Harmit Singh", "Harshita Pradhan", "Heeral Tandon", "Himanshi Tanwar", "Hritik Kumar", "I Dharshana", "Isha Jain", "Ishan Sanghavi", "Ishita Sinha", "Jash Vaja", "Jay Dave", "Jeel Shah", "Jyoti Bikas Das", "Kanishk Mehta", "Kanishka Gupta", "Kishore P", "Koustav Jana", "Krish Siddharth Negi", "Kritik Pillai", "Kshitiz Gupta", "Lakshmi S", "Mahi Kinariwala", "Mahika Vasandani", "Manav Malhotra", "Marie Aparajith Rajashankar", "Masoom Singh", "Medha Jha", "Monish Das", "Mridul Arora", "Mudit Mittal", "Nachiketh N", "Nihal Bibikar", "Nikhar Talreja", "Niladri Kundu", "Ojaswinee Biswal", "Paridhi Rungta", "Pilla Venkata Sai Tharun", "Pragya Rastogi", "Prakhar", "Pramiti Gupta", "Prateek Gaur", "Pratham Bagri", "Pratham Goel", "Pratham Kamath", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Rituparna Sharma", "Rohit Ramakant Patil", "Rohit Ranjan", "Ronny Jacob", "Ruttva Virendrasinh Raj", "S K Harrish", "Saksham Gupta", "Sanidhya Mishra", "Sanskar Mahalka", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shraddha Randive", "Shreya Gupta", "Shreya Shivangi", "Shwetha R", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sudhanshu Chauhan", "Sujith Reddy Yedulla", "Suraj Satpute", "Swechha Jaiswal", "Tanisha Singh", "Tanishq Dahiya", "Tharani S S", "Tina Kewlani", "Tumuluri Vaashista Vivek", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vedant Swarnkar", "Vidhu P", "Vishnu Vyas", "Yashashree Jitendra Kothawade"]}, {"cls": "Customer Relationship Management- Visiting Faculty/ Prof Dhananjay( Tentative)", "students": ["Aastha Saini", "Abhijatya Negi", "Aby K Mathai", "Aditya Chaubey", "Ajay Vigneshwar A", "Amir Rahman", "Aniket Patwari", "Ankit Ghoradkar", "Arjya Bose", "Aryaman Gupta", "Ashish Gupta", "Avantika Sain", "Bharvi Girkar", "Chirag Tandon", "Gaurang Maheshwari", "Gaurav Agarwal", "Gaurav Wadhwa", "Hanima Ahuja", "Heeral Tandon", "Isha Jain", "Jash Vaja", "Jay Dave", "Jyoti Bikas Das", "Koustav Jana", "Kurian George", "Mahika Vasandani", "Manav Malhotra", "Mridul Arora", "Nachiketh N", "Nidhi Shaw", "Nihal Bibikar", "Nikhar Talreja", "Ojaswinee Biswal", "Pilla Venkata Sai Tharun", "Pratham Bagri", "Pratham Kamath", "Preetkanwal Singh", "Raunit Raj", "Ridhi Kothari", "Rituparna Sharma", "Rohit Ramakant Patil", "Ronny Jacob", "Samhita Banerjee", "Sanskar Mahalka", "Shreya Shivangi", "Shrishti Mittal", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Vidhu P", "Yashashree Jitendra Kothawade"]}, {"cls": "Emotional Intelligence at Work- Dr Umakanta Nayak", "students": ["Abhijatya Negi", "Abhishek Kumar", "Aditya Chaubey", "Akshara T Santhosh", "Aman Shahin", "Amir Rahman", "Anannya Gupta", "Aniket Patwari", "Ankit Ghoradkar", "Anna Ria", "Anusha Heliwal", "Arjya Bose", "Arsh Vardhan Sinha", "Aryan Agnihotri", "Bharvi Girkar", "Devanshi Kyal", "Dhairya Mehta", "Dristi Mittal", "Hanima Ahuja", "Himanshi Tanwar", "I Dharshana", "Insha Ali", "Isha Jain", "Ishita Sinha", "Kanishka Gupta", "Kishore P", "Kurian George", "Mahika Vasandani", "Manav Malhotra", "Masoom Singh", "Medha Jha", "Monish Das", "Naman Jain", "Nidhi Shaw", "Nihal Bibikar", "Nikhar Talreja", "Pilla Venkata Sai Tharun", "Pramiti Gupta", "Pratham Kamath", "Preetkanwal Singh", "Rituparna Sharma", "Riya Malik", "Ronny Jacob", "Ruttva Virendrasinh Raj", "Saksham Gupta", "Samhita Banerjee", "Sanskar Tulsian", "Saurabh Pathak", "Savitha Sri S", "Shreya Gupta", "Shrishti Mittal", "Shubh Gupta", "Shwetha R", "Sudhanshu Chauhan", "Swechha Jaiswal", "Tanisha Singh", "Tejaswita", "Tina Kewlani", "Umang Gupta", "Uzma Khan", "Varun Patwary", "Vasu Jain", "Vedant Swarnkar", "Vishnu P S"]}, {"cls": "Managing Growth- Dr Dileep Kumar", "students": ["Aastha Saini", "Abhijatya Negi", "Abhishek Kumar", "Aby K Mathai", "Aditya Chaubey", "Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Aman Shahin", "Aniket Patwari", "Ankit Ghoradkar", "Ankita Patwardhan", "Ankush P. Karwa", "Anna Ria", "Antara Gupta", "Anusha Heliwal", "Arsh Vardhan Sinha", "Aryaman Gupta", "Ashish Gupta", "Astha Kejriwal", "Ayush Dutta", "Ayush Kayande", "Bharvi Girkar", "Chandrakant Narwani", "Chirag Tandon", "Deepti Yendluri", "Devanshi Kyal", "Dhairya Mehta", "Dibyendu Das", "Dristi Mittal", "Gaurang Maheshwari", "Gaurav Wadhwa", "Girish Kabra", "Harmit Singh", "Harshita Pradhan", "Heeral Tandon", "Himanshi Tanwar", "Hritik Kumar", "Insha Ali", "Ishan Sanghavi", "Jahnvi Sahay", "Jash Vaja", "Jay Dave", "Jeel Shah", "Kanishk Mehta", "Kanishka Gupta", "Koustav Jana", "Krish Siddharth Negi", "Kritik Pillai", "Kshitiz Gupta", "Kurian George", "Lakshmi S", "Mahi Kinariwala", "Mahika Vasandani", "Marie Aparajith Rajashankar", "Masoom Singh", "Medha Jha", "Monish Das", "Mridul Arora", "Mudit Mittal", "Nachiketh N", "Naman Jain", "Nihal Bibikar", "Niladri Kundu", "Ojaswinee Biswal", "Paridhi Rungta", "Pragya Rastogi", "Prakhar", "Pramiti Gupta", "Prateek Gaur", "Pratham Bagri", "Pratham Goel", "Pratham Kamath", "Preetkanwal Singh", "Prerna Tekade", "Priyanshu Mittal", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Rishabh Tulsian", "Rishita Ramdeo", "Riya Malik", "Rohit Ramakant Patil", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "S K Harrish", "Saksham Gupta", "Samhita Banerjee", "Sanidhya Mishra", "Sanskar Mahalka", "Sanskar Tulsian", "Saurabh Pathak", "Shraddha Randive", "Shreya Shivangi", "Shrishti Mittal", "Shubh Gupta", "Simran Kumari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Sujith Reddy Yedulla", "Swapnil Tiwari", "Tanisha Singh", "Tanishq Dahiya", "Tejaswita", "Tharani S S", "Tina Kewlani", "Tumuluri Vaashista Vivek", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Umang Gupta", "Uzma Khan", "Vaishnavi Dudem", "Varun Patwary", "Vasu Jain", "Vidhu P", "Vishnu P S", "Vishnu Vyas", "Yashashree Jitendra Kothawade"]}, {"cls": "Marketing Strategy- Dr Srividya Raghavan", "students": ["Aastha Saini", "Aby K Mathai", "Akshara T Santhosh", "Aman Shahin", "Arjya Bose", "Aryaman Gupta", "Ashish Gupta", "Avantika Sain", "Gaurav Agarwal", "Gaurav Wadhwa", "Insha Ali", "Jay Dave", "Jyoti Bikas Das", "Kanishk Mehta", "Krish Siddharth Negi", "Kurian George", "Lakshmi S", "Marie Aparajith Rajashankar", "Mridul Arora", "Nachiketh N", "Nidhi Shaw", "Ojaswinee Biswal", "Paridhi Rungta", "Pratham Bagri", "Preetkanwal Singh", "Riya Malik", "Ronny Jacob", "S K Harrish", "Sanidhya Mishra", "Sanskar Mahalka", "Shreya Shivangi", "Shwetha R", "Sujith Reddy Yedulla", "Swapnil Tiwari", "Tanishq Dahiya", "Tumuluri Vaashista Vivek", "Vedant Swarnkar", "Vidhu P", "Yashashree Jitendra Kothawade"]}, {"cls": "Private Equity- Dr Narender Vunyale", "students": ["Anannya Gupta", "Ankita Patwardhan", "Anna Ria", "Antara Gupta", "Aryan Agnihotri", "Astha Kejriwal", "Avantika Sain", "Ayush Dutta", "Ayush Kayande", "Chandrakant Narwani", "Dhairya Mehta", "Dibyendu Das", "Gaurav Agarwal", "Girish Kabra", "Harshita Pradhan", "Ishita Sinha", "Jahnvi Sahay", "Jeel Shah", "Kritik Pillai", "Kshitiz Gupta", "Mahi Kinariwala", "Medha Jha", "Naman Jain", "Niladri Kundu", "Prerna Tekade", "Rohit Ranjan", "Ruttva Virendrasinh Raj", "Sanskar Tulsian", "Shraddha Randive", "Shreya Gupta", "Shubh Gupta", "Simran Kumari", "Sudhanshu Chauhan", "Suraj Satpute", "Swapnil Tiwari", "Swechha Jaiswal", "Tejaswita", "Tushar Soni", "Tushita Mishra", "Umang Agarwal", "Uzma Khan", "Vasu Jain", "Vishnu Vyas"]}, {"cls": "Sustainable Finance- Dr Showkat Ahmad", "students": ["Ajay Vigneshwar A", "Akella Venkata Karthik", "Akshita Chopde", "Ankush P. Karwa", "Anusha Heliwal", "Chandrakant Narwani", "Deepti Yendluri", "Gaurang Maheshwari", "Hritik Kumar", "Kishore P", "Mudit Mittal", "Pratham Goel", "Puru Laroia", "Raunit Raj", "Ridhi Kothari", "Sraeya Balakrishnan", "Srishti Shinde", "Subhashribad Lenka", "Vaishnavi Dudem", "Vishnu P S"]}, {"cls": "Talent Management- Dr Sasmita Misra", "students": ["Akshara T Santhosh", "Aryan Agnihotri", "Manav Malhotra", "Mudit Mittal", "Nidhi Shaw", "Puru Laroia", "Samhita Banerjee", "Shrishti Mittal", "Vedant Swarnkar", "Vishnu P S"]}, {"cls": "Technology in Financial Services- Prof Madhav Medicherla( Tentative)", "students": ["Harmit Singh", "I Dharshana", "Ishan Sanghavi", "Jahnvi Sahay", "Kishore P", "Pragya Rastogi", "Prakhar", "Prateek Gaur", "Priyanshu Mittal", "Rishabh Tulsian", "Rishita Ramdeo", "Savitha Sri S", "Suraj Satpute", "Tharani S S"]}]};
+
+const PALETTE = [
+  ['#DBEAFE','#1E40AF','#93C5FD','#1E40AF'],
+  ['#DCFCE7','#166534','#86EFAC','#166534'],
+  ['#FEF3C7','#92400E','#FCD34D','#B45309'],
+  ['#EDE9FE','#4C1D95','#C4B5FD','#6D28D9'],
+  ['#FFE4E6','#9F1239','#FCA5A5','#BE123C'],
+  ['#CCFBF1','#134E4A','#5EEAD4','#0F766E'],
+  ['#FEE2E2','#991B1B','#FCA5A5','#DC2626'],
+  ['#E0F2FE','#0C4A6E','#7DD3FC','#0369A1'],
+  ['#F3E8FF','#581C87','#D8B4FE','#7E22CE'],
+  ['#ECFCCB','#365314','#A3E635','#4D7C0F'],
+  ['#FFF7ED','#7C2D12','#FDBA74','#EA580C'],
+  ['#FCE7F3','#831843','#F9A8D4','#BE185D'],
+];
+
+var selected = new Map();
+var colorIdx = 0;
+var query = '';
+
+function shortName(cls) {
+  return cls
+    .replace(/\s*[-\u2013]\s*(Dr\.?|Prof\.?|New|Visiting|New\/Visiting).*$/i, '')
+    .replace(/\s*\(\s*(Dr\.?|Prof\.?|New|Visiting|New\/Visiting).*$/i, '')
+    .trim();
+}
+
+function facultyStr(cls) {
+  var m = cls.match(/[-\u2013(]\s*(Dr\.?|Prof\.?|New[/ ]*Visiting Faculty|New Faculty|Visiting Faculty).+/i);
+  return m ? m[0].replace(/^[-\u2013(\s]+/, '').replace(/\s*\(tentative\)/i, ' (tentative)').trim() : '';
+}
+
+function displayName(name) {
+  var sel = Array.from(selected.keys());
+  var parts = name.trim().split(/\s+/);
+  var first = parts[0];
+  var firstClash = sel.filter(function(n) {
+    return n !== name && n.trim().split(/\s+/)[0] === first;
+  });
+  if (!firstClash.length) return first;
+  var lastInit = parts.length > 1 ? parts[parts.length - 1][0] + '.' : '';
+  var label1 = lastInit ? first + ' ' + lastInit : first;
+  var label1Clash = sel.filter(function(n) {
+    if (n === name) return false;
+    var p = n.trim().split(/\s+/);
+    var li = p.length > 1 ? p[p.length - 1][0] + '.' : '';
+    return p[0] === first && (p[0] + ' ' + li) === label1;
+  });
+  if (!label1Clash.length) return label1;
+  return name;
+}
+
+function esc(s) { return s.replace(/'/g, "\\'"); }
+
+function renderList() {
+  var list = document.getElementById('studentList');
+  var q = query.toLowerCase();
+  var filtered = q ? STUDENTS.filter(function(n) { return n.toLowerCase().indexOf(q) !== -1; }) : STUDENTS;
+  if (!filtered.length) {
+    list.innerHTML = '<div class="no-results">No students found.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < filtered.length; i++) {
+    var name = filtered[i];
+    var sel = selected.has(name);
+    var checkStyle = sel
+      ? 'background:' + PALETTE[selected.get(name)][3] + ';border-color:' + PALETTE[selected.get(name)][3]
+      : 'background:#fff;border-color:#ccc';
+    var rowStyle = sel ? 'background:' + PALETTE[selected.get(name)][0] : '';
+    html += '<div class="s-item' + (sel ? ' selected' : '') + '" style="' + rowStyle + '" onclick="toggle(\'' + esc(name) + '\')">';
+    html += '<div class="s-check" style="' + checkStyle + '">' + (sel ? '&#10003;' : '') + '</div>';
+    html += '<span class="s-name">' + name + '</span>';
+    html += '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function renderBadges() {
+  var badges = document.getElementById('selBadges');
+  var label = document.getElementById('selLabel');
+  var clearBtn = document.getElementById('clearAllBtn');
+  label.textContent = selected.size + ' selected';
+  clearBtn.style.display = selected.size ? 'inline' : 'none';
+  var html = '';
+  selected.forEach(function(ci, name) {
+    var c = PALETTE[ci];
+    html += '<span class="sel-badge" style="background:' + c[0] + ';color:' + c[1] + '">';
+    html += name;
+    html += '<span class="rm" onclick="toggle(\'' + esc(name) + '\')">&#215;</span>';
+    html += '</span>';
+  });
+  badges.innerHTML = html;
+}
+
+function renderTables() {
+  var trims = ['iv', 'v', 'vi'];
+  for (var t = 0; t < trims.length; t++) {
+    var tk = trims[t];
+    var panel = document.getElementById('panel-' + tk);
+    if (selected.size < 2) {
+      panel.innerHTML = '<div class="empty">Select at least 2 students to see shared classes.</div>';
+      continue;
+    }
+    var rows = [];
+    var clsArr = CLASSES[tk];
+    for (var i = 0; i < clsArr.length; i++) {
+      var matched = clsArr[i].students.filter(function(s) { return selected.has(s); });
+      if (matched.length >= 2) rows.push({ cls: clsArr[i].cls, matched: matched });
+    }
+    rows.sort(function(a, b) { return b.matched.length - a.matched.length; });
+    if (!rows.length) {
+      panel.innerHTML = '<div class="empty">No shared classes among selected students this trimester.</div>';
+      continue;
+    }
+    var html = '<table>';
+    html += '<tr><th style="width:33%">Class</th><th>Students together</th><th style="width:58px;text-align:center">Count</th></tr>';
+    for (var r = 0; r < rows.length; r++) {
+      var row = rows[r];
+      var badgeHtml = '';
+      for (var m = 0; m < row.matched.length; m++) {
+        var n = row.matched[m];
+        var c = PALETTE[selected.get(n)];
+        badgeHtml += '<span class="badge" style="background:' + c[0] + ';color:' + c[1] + '">' + displayName(n) + '</span>';
+      }
+      html += '<tr>';
+      html += '<td><div class="cls-name">' + shortName(row.cls) + '</div><div class="faculty">' + facultyStr(row.cls) + '</div></td>';
+      html += '<td>' + badgeHtml + '</td>';
+      html += '<td style="text-align:center"><span class="count-pill">' + row.matched.length + '</span></td>';
+      html += '</tr>';
+    }
+    html += '</table>';
+    panel.innerHTML = html;
+  }
+}
+
+function toggle(name) {
+  if (selected.has(name)) {
+    selected.delete(name);
+    var entries = Array.from(selected.entries()).sort(function(a, b) { return a[1] - b[1]; });
+    selected.clear();
+    for (var i = 0; i < entries.length; i++) selected.set(entries[i][0], i);
+    colorIdx = selected.size;
+  } else {
+    selected.set(name, colorIdx % PALETTE.length);
+    colorIdx++;
+  }
+  renderList(); renderBadges(); renderTables();
+}
+
+function filterList() {
+  query = document.getElementById('searchInput').value;
+  renderList();
+}
+
+function selectVisible() {
+  var q = query.toLowerCase();
+  var filtered = q ? STUDENTS.filter(function(n) { return n.toLowerCase().indexOf(q) !== -1; }) : STUDENTS;
+  for (var i = 0; i < filtered.length; i++) {
+    if (!selected.has(filtered[i])) { selected.set(filtered[i], colorIdx % PALETTE.length); colorIdx++; }
+  }
+  renderList(); renderBadges(); renderTables();
+}
+
+function clearAll() {
+  selected.clear(); colorIdx = 0;
+  renderList(); renderBadges(); renderTables();
+}
+
+function showTab(id, btn) {
+  var panels = document.querySelectorAll('.panel');
+  for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+renderList(); renderBadges(); renderTables();
+</script>
+</body>
+</html>
